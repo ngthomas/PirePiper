@@ -1,0 +1,4 @@
+basePath= #1. base Directory i.e. /u/home/k/kruegg/project-eeskin/project
+species= #2. Species Name i.e. Olivacea
+runN= #3. Run Number i.e. RAD_140916
+sample= #4 Sample Name [comma separated] i.e. sample1,sample2
