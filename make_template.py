@@ -27,11 +27,7 @@ def check_config(config_param):
 			
 def make_folders(config_param):
 
-	path_pre = config_para['basePath'] +
-			"/" + 
-			config_para['species']+
-			"/" +
-			config_para['runN']
+	path_pre = config_para['basePath'] +"/" + config_para['species']+"/" +config_para['runN']
 			
 	os.makedirs(path_pre+"/data") 
 	print ("Creating Directory : " + path_pre + "/data")
@@ -52,9 +48,7 @@ def make_folders(config_param):
 
 def generate_scripts(config_param):
 
-	script_path = config_para['basePath'] + "/" + 
-			config_para['species']+ "/" +
-			config_para['runN'] + "/scripts" 
+	script_path = config_para['basePath'] + "/" + config_para['species']+ "/" +config_para['runN'] + "/scripts" 
 			
 	print "Creating Stacks pre-process scripts ... "+script_path+"/Stacks/run_processTags.sh"
 	
