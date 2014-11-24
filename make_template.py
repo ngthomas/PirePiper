@@ -67,15 +67,12 @@ def generate_scripts(config_param):
 ## Usage: Submit this script thru qsub: qsub run_processTags.sh
 
 # base directory
-WKDIR="""+config_para['basePath'] + "/" +config_para['species']+ "/" +config_para['runN']+
-"""
-"""+string.join(["""mkdir -p ${WKDIR}/analysis/Stacks/processTags/"""+x for x in config_para['lane'] ],"\n")+
-"""
+WKDIR="""+config_para['basePath'] + "/" +config_para['species']+ "/" +config_para['runN']+"""
+"""+string.join(["""mkdir -p ${WKDIR}/analysis/Stacks/processTags/"""+x for x in config_para['lane'] ],"\n")+"""
 
 # making the stacks' barcode
-"""+
-+string.join(["""awk '{print $1}' ${WKDIR}/data/"""+x+"""/barcode > ${WKDIR}/data/"""+x+"""/RAD_barcode """ for x in config_para['lane'] ],"\n")+  
-"""
+
+"""+string.join(["""awk '{print $1}' ${WKDIR}/data/"""+x+"""/barcode > ${WKDIR}/data/"""+x+"""/RAD_barcode """ for x in config_para['lane'] ],"\n")+"""
 
 
 # parameters for process_radtags
@@ -89,12 +86,9 @@ WKDIR="""+config_para['basePath'] + "/" +config_para['species']+ "/" +config_par
 # -i: input file type 
 
 # -s (note: we need to figure out the best limit and add it below, or now we have set it to 20): set the score limit. If the average score within the sliding window drops below this value, the read is discarded (default 10).
-"""+
-string.join(["""process_radtags -p ${WKDIR}/data/"""+x+""" -o ${WKDIR}/analysis/Stacks/processTags/"""+x+""" -b ${WKDIR}/data/"""+x+"""/RAD_barcode -e 'sbfI' -r -c -q -i gzfastq""" for x in config_para['lane'] ],"\n")+  
-"""
+"""+string.join(["""process_radtags -p ${WKDIR}/data/"""+x+""" -o ${WKDIR}/analysis/Stacks/processTags/"""+x+""" -b ${WKDIR}/data/"""+x+"""/RAD_barcode -e 'sbfI' -r -c -q -i gzfastq""" for x in config_para['lane'] ],"\n")+"""
 # relabel fq barcode file to something more meaningful i.e. the sample name
-"""+
-string.join(["""awk -v basePath=${WKDIR}/analysis/Stacks/processTags/"""+x+""" 'FS="," {if(NR>1) {print "mv "basePath"/sample_"$2".fq "basePath"/sample_"$1".fq"}}' ${WKDIR}/data/"""+x+"""/barcode |bash """ for x in config_para['lane'] ],"\n")
+"""+string.join(["""awk -v basePath=${WKDIR}/analysis/Stacks/processTags/"""+x+""" 'FS="," {if(NR>1) {print "mv "basePath"/sample_"$2".fq "basePath"/sample_"$1".fq"}}' ${WKDIR}/data/"""+x+"""/barcode |bash """ for x in config_para['lane'] ],"\n")
 
 	stack_script1_file.write(stack_script1)
 	
@@ -123,8 +117,7 @@ string.join(["""awk -v basePath=${WKDIR}/analysis/Stacks/processTags/"""+x+""" '
 # -s: path for fastq indiv samples
 # -o: output path
 
-WKDIR="""+config_para['basePath'] + "/" +config_para['species']+ "/" +config_para['runN']+
-"""
+WKDIR="""+config_para['basePath'] + "/" +config_para['species']+ "/" +config_para['runN']+"""
 
 mkdir -p ${WKDIR}/analysis/Stacks/denovo
 
@@ -148,8 +141,7 @@ echo "nohup denovo_map.pl -m 6 -M 2 -n 2 -S -b 1 -T 6 -t -o ${WKDIR}/analysis/St
 ###Usage: Submit this script thru qsub: qsub run_pyRAD.sh
 
 #run all of the steps 1 to 7
-WKDIR="""+config_para['basePath'] + "/" +config_para['species']+ "/" +config_para['runN']+
-"""
+WKDIR="""+config_para['basePath'] + "/" +config_para['species']+ "/" +config_para['runN']+"""
 
 module load python/2.7
 pyRAD -p $WKDIR/scripts/pyRAD/params.txt -s 234567
