@@ -13,7 +13,7 @@ def read_config(fileName):
 		if str_sep[0] == "sample":
 			config[str_sep[0]]=str_sep[1].split(",")
 		else:
-			config[str_sep[0]]]=str_sep[1]
+			config[str_sep[0]]=str_sep[1]
 		#config.setdefault(str_sep[0],[]).append(str_sep[1])
 	configFile.close()
 	return config
