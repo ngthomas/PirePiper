@@ -9,7 +9,9 @@ def read_config(fileName):
 		if re.match("^#", line):
 			next
 		str_sep =re.split("=| ", line)
-		config[str_sep[0]]=str_sep[1].split(",")
+		#If user provides the sample label, the samples are separated out into a list
+		if str_sep[0] == "sample":
+			config[str_sep[0]]=str_sep[1].split(",")
 		#config.setdefault(str_sep[0],[]).append(str_sep[1])
 	configFile.close()
 	return config
