@@ -10,6 +10,8 @@ def read_config(fileName):
 	configFile = open(fileName, "r")
 	config=dict()
 	for line in configFile.read().splitlines():
+		if re.match("^#", line):
+			next
 		str_sep =re.split("=| ", line)
 		config[str_sep[0]]=str_sep[1].split(",")
 		#config.setdefault(str_sep[0],[]).append(str_sep[1])
