@@ -53,14 +53,26 @@ def generate_scripts(config_param):
 	script_path = config_param['basePath'] + "/" + config_param['species']+ "/" +config_param['runN'] + "/scripts" 
 	path_pre = config_param['basePath'] +"/" + config_param['species']+"/" +config_param['runN']
 			
-	print ("")
-	print ("------------------------")
-	print ("For "+sample+":")
-	print ("3a. Transfer your fastq files to: " + path_pre +"/data/"+sample+"/raw")
-	print ("3b. Make your barcode file (barcode w/ sample Name) for "+sample+" as: " + path_pre +"/data/"+sample+"/barcode")
+	for sample in config_param['sample']:
 		print ("")
-	print "Creating Stacks pre-process scripts ... "+script_path+"/Stacks/run_processTags.sh"
-	
+		print ("------------------------")
+		print ("For "+sample+":")
+		print ("3a. Transfer your fastq files to: " + path_pre +"/data/"+sample+"/raw")
+		print ("3b. Edit barcode file (barcode w/ sample Name): vi " + path_pre +"/data/"+sample+"/barcode")
+		print ("")
+		print ("4a. To run quality summary testing: qsub "+script_path+"/"+sample+"/run_qc.sh")
+		print ("4b. To trim 5bp from the fastq read: qsub "+script_path+"/"+sample+"/run_trim.sh")
+		print ("")
+		print ("5a. To demultiplex reads Using Stacks: qsub "+script_path+"/"+sample+"/Stacks/run_processTags.sh")
+		print ("5b. To call loci Using Stacks: qsub "+script_path+"/"+sample+"run_stackCatalog.sh")
+		print ("")
+		print ("6a. To optimize stacks parameter: qsub ??")
+		print ("6b. To generate loci quality caller: qsub ??")
+		print ("")
+		print ("7. To run pyRAD: qsub " +script_path+"/"+sample+"/pyRAD/run_pyRAD.sh")
+		print ("")
+		print ("____________________________________________________________________")
+		print ("")
 	
 	
 	stack_script1_file = open (script_path+"/Stacks/run_processTags.sh", "w")
@@ -100,8 +112,6 @@ WKDIR="""+config_param['basePath'] + "/" +config_param['species']+ "/" +config_p
 """+string.join(["""awk -v basePath=${WKDIR}/analysis/Stacks/processTags/"""+x+""" 'FS="," {if(NR>1) {print "mv "basePath"/sample_"$2".fq "basePath"/sample_"$1".fq"}}' ${WKDIR}/data/"""+x+"""/barcode |bash """ for x in config_param['sample'] ],"\n")
 
 	stack_script1_file.write(stack_script1)
-	
-	print "Creating Stacks de-novo scripts ... "+script_path+"/Stacks/run_stackCatalog.sh"
 	
 	stack_script2_file = open (script_path+"/Stacks/run_stackCatalog.sh", "w")
 	stack_script2 = """#!/bin/bash
