@@ -50,33 +50,82 @@ def make_folders(config_param):
 
 def generate_scripts(config_param):
 
-	script_path = config_param['basePath'] + "/" + config_param['species']+ "/" +config_param['runN'] + "/scripts" 
 	path_pre = config_param['basePath'] +"/" + config_param['species']+"/" +config_param['runN']
 			
 	for sample in config_param['sample']:
+		script_path = path_pre + "/scripts/"+sample
+		rawfq_path = path_pre +"/data/"+sample+"/raw"
+		barcode_path = path_pre +"/data/"+sample+"/barcode"
+		
 		print ("")
 		print ("------------------------")
 		print ("For "+sample+":")
-		print ("3a. Transfer your fastq files to: " + path_pre +"/data/"+sample+"/raw")
-		print ("3b. Edit barcode file (barcode w/ sample Name): vi " + path_pre +"/data/"+sample+"/barcode")
+		print ("3a. Transfer your fastq files to: " + rawfq_path)
+		print ("3b. Edit barcode file (barcode w/ sample Name): vi " + barcode_path)
 		print ("")
-		print ("4a. To run quality summary testing: qsub "+script_path+"/"+sample+"/run_qc.sh")
-		print ("4b. To trim 5bp from the fastq read: qsub "+script_path+"/"+sample+"/run_trim.sh")
+		print ("4a. To run quality summary testing: qsub "+script_path+"/run_qc.sh")
+		print ("4b. To trim 5bp from the fastq read: qsub "+script_path+"/run_trim.sh")
 		print ("")
-		print ("5a. To demultiplex reads Using Stacks: qsub "+script_path+"/"+sample+"/Stacks/run_processTags.sh")
-		print ("5b. To call loci Using Stacks: qsub "+script_path+"/"+sample+"run_stackCatalog.sh")
+		print ("5a. To demultiplex reads Using Stacks: qsub "+script_path+"/Stacks/run_processTags.sh")
+		print ("5b. To call loci Using Stacks: qsub "+script_path+"/Stacks/run_stackCatalog.sh")
 		print ("")
 		print ("6a. To optimize stacks parameter: qsub ??")
 		print ("6b. To generate loci quality caller: qsub ??")
 		print ("")
-		print ("7. To run pyRAD: qsub " +script_path+"/"+sample+"/pyRAD/run_pyRAD.sh")
+		print ("7. To run pyRAD: qsub " +script_path+"/pyRAD/run_pyRAD.sh")
 		print ("")
 		print ("____________________________________________________________________")
 		print ("")
 	
-	
-	stack_script1_file = open (script_path+"/Stacks/run_processTags.sh", "w")
-	stack_script1 = """#!/bin/bash
+		qc_FILE = open (script_path+"/run_qc.sh", "w")
+		
+		qc_script = """#!/bin/bash
+#$ -cwd
+#$ -V 
+#$ -N fastq_QC 
+#$ -pe shared 1
+#$ -l highp,h_data=4G,time=33:00:00 
+#$ -m bea
+
+## path: """+script_path+"""
+## Usage: Submit this script thru qsub: qsub run_qc.sh
+
+cd """+rawfq_path+"""
+cat *fastq* | fastqc /dev/stdin -o ../qc_report/
+"""
+		qc_FILE.write(qc_script)
+		
+		trim_FILE = open (script_path+"/run_trim.sh", "w")
+		
+		trim_script = """#!/bin/bash
+#$ -cwd
+#$ -V 
+#$ -N trim_reads 
+#$ -pe shared 1
+#$ -l highp,h_data=4G,time=24:00:00 
+#$ -m bea
+
+## path: """+script_path+"""
+## Usage: Submit this script thru qsub: qsub run_trim.sh
+
+cd """+rawfq_path+"""
+raw_file=(*fastq*)
+half_val=$[${#raw_file[@]}/2]
+
+for ((i = 0; i < half_val; i++)); do
+seqtk trimfq -e 5 ${raw_file[$i]} > ../trim/${raw_file[$i]}; done &
+
+for ((j = half_val; j < ${#raw_file[@]}; j++)); do
+seqtk trimfq -e 5 ${raw_file[$j]} > ../trim/${raw_file[$j]}; done &
+
+wait
+cd ../trim
+rename fastq.gz fastq *.gz
+"""
+		trim_FILE.write(trim_script)
+
+		stack_script1_file = open (script_path+"/Stacks/run_processTags.sh", "w")
+		stack_script1 = """#!/bin/bash
 #$ -cwd
 #$ -V 
 #$ -N stack_process 
