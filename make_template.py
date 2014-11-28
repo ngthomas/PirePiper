@@ -2,6 +2,9 @@
 
 import os, sys, re, argparse, string
 
+'''
+This module reads the user's input config file and extracts information from it
+'''
 def read_config(fileName):
 	configFile = open(fileName, "r")
 	config=dict()
@@ -18,6 +21,9 @@ def read_config(fileName):
 	configFile.close()
 	return config
 	
+'''
+This module makes sure all of the config's labels are present; if not, the system halts
+'''
 def check_config(config_param):
 	for label in ['basePath', 'species', 'runN','sample']:
 		if label in config_param:
@@ -26,32 +32,33 @@ def check_config(config_param):
 			print "Missing this label:", label
 			sys.exit(1)
 
-			
+'''
+This module creates folders to hold fastq files, downstream results, and scripts. 
+'''
 def make_folders(config_param):
 
 	path_pre = config_param['basePath'] +"/" + config_param['species']+"/" +config_param['runN']
 			
-	os.makedirs(path_pre+"/data") 
-	print ("Creating Directory : " + path_pre + "/data")
 	for sample in config_param['sample']:
 		os.makedirs(path_pre+"/data/"+sample+"/raw") 
-		print ("For "+sample+":")
-		print ("Transfer your "+sample+" 's fastq files to: " + path_pre +"/data/"+sample+"/raw")
-		print ("Make your barcode file (barcode w/ sample Name) for "+sample+" as: " + path_pre +"/data/"+sample+"/barcode")
-		print ("")
-	
-	for i in ['pyRAD', 'Stacks', 'R']:
-		os.makedirs(path_pre+"/analysis/"+i)
-		os.makedirs(path_pre+"/scripts/"+i)
-	
-	print ("Creating Directory : " + path_pre + "/analysis")
-	print ("Creating Directory : " + path_pre + "/scripts")
+		os.makedirs(path_pre+"/data/"+sample+"/trim") 
+		os.makedirs(path_pre+"/data/"+sample+"/qc_report") 
 		
+		for i in ['pyRAD', 'Stacks', 'R']:
+			os.makedirs(path_pre+"/analysis/"+sample+"/"+i)
+			os.makedirs(path_pre+"/scripts/"+sample+"/"+i)
 
 def generate_scripts(config_param):
 
 	script_path = config_param['basePath'] + "/" + config_param['species']+ "/" +config_param['runN'] + "/scripts" 
+	path_pre = config_param['basePath'] +"/" + config_param['species']+"/" +config_param['runN']
 			
+	print ("")
+	print ("------------------------")
+	print ("For "+sample+":")
+	print ("3a. Transfer your fastq files to: " + path_pre +"/data/"+sample+"/raw")
+	print ("3b. Make your barcode file (barcode w/ sample Name) for "+sample+" as: " + path_pre +"/data/"+sample+"/barcode")
+		print ("")
 	print "Creating Stacks pre-process scripts ... "+script_path+"/Stacks/run_processTags.sh"
 	
 	
