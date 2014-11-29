@@ -55,6 +55,7 @@ def generate_scripts(config_param):
 	for sample in config_param['sample']:
 		script_path = path_pre + "/scripts/"+sample
 		rawfq_path = path_pre +"/data/"+sample+"/raw"
+		trim_path = path_pre+"/data/"+sample+"/trim"
 		barcode_path = path_pre +"/data/"+sample+"/barcode"
 		
 		print ("")
@@ -121,11 +122,12 @@ seqtk trimfq -e 5 ${raw_file[$j]} > ../trim/${raw_file[$j]}; done &
 wait
 cd ../trim
 rename fastq.gz fastq *.gz
+gzip * &
 """
 		trim_FILE.write(trim_script)
 
-		stack_script1_file = open (script_path+"/Stacks/run_processTags.sh", "w")
-		stack_script1 = """#!/bin/bash
+		stack_demulti_FILE = open (script_path+"/Stacks/run_processTags.sh", "w")
+		stack_demulti = """#!/bin/bash
 #$ -cwd
 #$ -V 
 #$ -N stack_process 
@@ -137,12 +139,12 @@ rename fastq.gz fastq *.gz
 ## Usage: Submit this script thru qsub: qsub run_processTags.sh
 
 # base directory
-WKDIR="""+config_param['basePath'] + "/" +config_param['species']+ "/" +config_param['runN']+"""
-"""+string.join(["""mkdir -p ${WKDIR}/analysis/Stacks/processTags/"""+x for x in config_param['sample'] ],"\n")+"""
+WKDIR="""+path_pre+"""
+mkdir -p ${WKDIR}/analysis/"""+sample+"""/Stacks/processTags
 
 # making the stacks' barcode
 
-"""+string.join(["""awk '{print $1}' ${WKDIR}/data/"""+x+"""/barcode > ${WKDIR}/data/"""+x+"""/RAD_barcode """ for x in config_param['sample'] ],"\n")+"""
+awk '{print $1}' ${WKDIR}/data/"""+sample+"""/barcode > ${WKDIR}/data/"""+sample+"""/RAD_barcode
 
 
 # parameters for process_radtags
@@ -156,14 +158,15 @@ WKDIR="""+config_param['basePath'] + "/" +config_param['species']+ "/" +config_p
 # -i: input file type 
 
 # -s (note: we need to figure out the best limit and add it below, or now we have set it to 20): set the score limit. If the average score within the sliding window drops below this value, the read is discarded (default 10).
-"""+string.join(["""process_radtags -p ${WKDIR}/data/"""+x+""" -o ${WKDIR}/analysis/Stacks/processTags/"""+x+""" -b ${WKDIR}/data/"""+x+"""/RAD_barcode -e 'sbfI' -r -c -q -i gzfastq""" for x in config_param['sample'] ],"\n")+"""
-# relabel fq barcode file to something more meaningful i.e. the sample name
-"""+string.join(["""awk -v basePath=${WKDIR}/analysis/Stacks/processTags/"""+x+""" 'FS="," {if(NR>1) {print "mv "basePath"/sample_"$2".fq "basePath"/sample_"$1".fq"}}' ${WKDIR}/data/"""+x+"""/barcode |bash """ for x in config_param['sample'] ],"\n")
+process_radtags -p """+trim_path+""" -o ${WKDIR}/analysis/"""+sample+"""/Stacks/processTags -b ${WKDIR}/data/"""+sample+"""/RAD_barcode -e 'sbfI' -r -c -q -i gzfastq
 
-	stack_script1_file.write(stack_script1)
+# relabel fq barcode file to something more meaningful i.e. the sample name
+awk -v basePath=${WKDIR}/analysis/"""+sample+"""/Stacks/processTags 'FS="," {if(NR>1) {print "mv "basePath"/sample_"$2".fq "basePath"/sample_"$1".fq"}}' ${WKDIR}/data/"""+sample+"""/barcode |bash """
+
+		stack_demulti_FILE.write(stack_demulti)
 	
-	stack_script2_file = open (script_path+"/Stacks/run_stackCatalog.sh", "w")
-	stack_script2 = """#!/bin/bash
+		stack_catalog_FILE = open (script_path+"/Stacks/run_stackCatalog.sh", "w")
+		stack_catalog = """#!/bin/bash
 #$ -cwd
 #$ -V 
 #$ -N stackCatalog_process 
@@ -185,19 +188,20 @@ WKDIR="""+config_param['basePath'] + "/" +config_param['species']+ "/" +config_p
 # -s: path for fastq indiv samples
 # -o: output path
 
-WKDIR="""+config_param['basePath'] + "/" +config_param['species']+ "/" +config_param['runN']+"""
+WKDIR="""+path_pre+"""
 
-mkdir -p ${WKDIR}/analysis/Stacks/denovo
+mkdir -p ${WKDIR}/analysis/"""+sample+"""/Stacks/denovo
 
 # make a list of input files
-inputL=`ls ${WKDIR}/analysis/Stacks/processTags/*/*.fq | awk '{printf "-s "$1 " "}'`
+inputL=`ls ${WKDIR}/analysis/"""+sample+"""/Stacks/processTags/*/*.fq | awk '{printf "-s "$1 " "}'`
 
-echo "nohup denovo_map.pl -m 6 -M 2 -n 2 -S -b 1 -T 6 -t -o ${WKDIR}/analysis/Stacks/denovo" $inputL " >${WKDIR}/analysis/Stacks/denovo/nohup.out" | bash
+echo "nohup denovo_map.pl -m 6 -M 2 -n 2 -S -b 1 -T 6 -t -o ${WKDIR}/analysis/"""+sample+"""/Stacks/denovo" $inputL " >${WKDIR}/analysis/"""+sample+"""/Stacks/denovo/nohup.out" | bash
 
 """	
-
-	pyrad_script_file = open (script_path+"/pyRAD/run_pyRAD.sh", "w")
-	pyrad_script = """#!/bin/bash
+		stack_catalog_FILE.write(stack_catalog)
+		
+		pyrad_FILE = open (script_path+"/pyRAD/run_pyRAD.sh", "w")
+		pyrad_script = """#!/bin/bash
 #$ -cwd
 #$ -V 
 #$ -N pyrad_process 
@@ -209,14 +213,12 @@ echo "nohup denovo_map.pl -m 6 -M 2 -n 2 -S -b 1 -T 6 -t -o ${WKDIR}/analysis/St
 ###Usage: Submit this script thru qsub: qsub run_pyRAD.sh
 
 #run all of the steps 1 to 7
-WKDIR="""+config_param['basePath'] + "/" +config_param['species']+ "/" +config_param['runN']+"""
+WKDIR=="""+path_pre+"""
 
 module load python/2.7
-pyRAD -p $WKDIR/scripts/pyRAD/params.txt -s 234567
-
+pyRAD -p $WKDIR/scripts/"""+sample+"""/pyRAD/params.txt -s 234567
 """
-	pyrad_script_file.write(pyrad_script)
-	
+		pyrad_FILE.write(pyrad_script)
 	
 	
 	
