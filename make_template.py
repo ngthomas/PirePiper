@@ -32,6 +32,11 @@ def check_config(config_param):
 			print "Missing this label:", label
 			sys.exit(1)
 
+def check_or_make_dir(path):
+	if not os.path.exists(path):
+		os.makedirs(path)
+
+
 '''
 This module creates folders to hold fastq files, downstream results, and scripts. 
 '''
@@ -40,13 +45,13 @@ def make_folders(config_param):
 	path_pre = config_param['basePath'] +"/" + config_param['species']+"/" +config_param['runN']
 			
 	for sample in config_param['sample']:
-		os.makedirs(path_pre+"/data/"+sample+"/raw") 
-		os.makedirs(path_pre+"/data/"+sample+"/trim") 
-		os.makedirs(path_pre+"/data/"+sample+"/qc_report") 
+		check_or_make_dir(path_pre+"/data/"+sample+"/raw") 
+		check_or_make_dir(path_pre+"/data/"+sample+"/trim")
+		check_or_make_dir(path_pre+"/data/"+sample+"/qc_report") 
 		
 		for i in ['pyRAD', 'Stacks', 'R']:
-			os.makedirs(path_pre+"/analysis/"+sample+"/"+i)
-			os.makedirs(path_pre+"/scripts/"+sample+"/"+i)
+			check_or_make_dir(path_pre+"/analysis/"+sample+"/"+i)
+			check_or_make_dir(path_pre+"/scripts/"+sample+"/"+i)
 
 def generate_scripts(config_param):
 
@@ -114,15 +119,18 @@ raw_file=(*fastq*)
 half_val=$[${#raw_file[@]}/2]
 
 for ((i = 0; i < half_val; i++)); do
-seqtk trimfq -e 5 ${raw_file[$i]} > ../trim/${raw_file[$i]}; done &
+seqtk trimfq -e 5 ${raw_file[$i]} > """+trim_path+"""/${raw_file[$i]}; 
+rename fastq.gz fastq """+trim_path+"""/${raw_file[$i]};
+gzip """+trim_path+"""/${raw_file[$i]};
+done &
 
 for ((j = half_val; j < ${#raw_file[@]}; j++)); do
-seqtk trimfq -e 5 ${raw_file[$j]} > ../trim/${raw_file[$j]}; done &
+seqtk trimfq -e 5 ${raw_file[$j]} > """+trim_path+"""/${raw_file[$j]}; 
+rename fastq.gz fastq """+trim_path+"""/${raw_file[$j]};
+gzip """+trim_path+"""/${raw_file[$j]};
+done &
 
-wait
-cd ../trim
-rename fastq.gz fastq *.gz
-gzip * &
+
 """
 		trim_FILE.write(trim_script)
 
