@@ -122,7 +122,6 @@ for fastq_f in *fastq*; do
 		outfile=`echo ${outfile} | rev| cut -c 4- |rev`; fi
 		
 	seqtk trimfq -e 5 ${fastq_f} > """+trim_path+"""/$outfile; 
-	gzip """+trim_path+"""/$outfile;
 done 
 
 """
@@ -157,10 +156,10 @@ awk '{print $1}' ${WKDIR}/data/"""+sample+"""/barcode > ${WKDIR}/data/"""+sample
 # -r: rescue RAD-TAGS and barcode
 # -c: clean data, remove uncalled base 
 # -q: remove low quality reads 
-# -i: input file type 
+# -i: input file type (gzfastq for gzip)
 
 # -s (note: we need to figure out the best limit and add it below, or now we have set it to 20): set the score limit. If the average score within the sliding window drops below this value, the read is discarded (default 10).
-process_radtags -p """+trim_path+""" -o ${WKDIR}/analysis/"""+sample+"""/Stacks/processTags -b ${WKDIR}/data/"""+sample+"""/RAD_barcode -e 'sbfI' -r -c -q -i gzfastq
+process_radtags -p """+trim_path+""" -o ${WKDIR}/analysis/"""+sample+"""/Stacks/processTags -b ${WKDIR}/data/"""+sample+"""/RAD_barcode -e 'sbfI' -r -c -q 
 
 # relabel fq barcode file to something more meaningful i.e. the sample name
 awk -v basePath=${WKDIR}/analysis/"""+sample+"""/Stacks/processTags 'FS="," {if(NR>1) {print "mv "basePath"/sample_"$2".fq "basePath"/sample_"$1".fq"}}' ${WKDIR}/data/"""+sample+"""/barcode |bash """
