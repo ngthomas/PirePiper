@@ -194,7 +194,7 @@ WKDIR="""+path_pre+"""
 mkdir -p ${WKDIR}/analysis/"""+sample+"""/Stacks/denovo
 
 # make a list of input files
-inputL=`ls ${WKDIR}/analysis/"""+sample+"""/Stacks/processTags/*/*.fq | awk '{printf "-s "$1 " "}'`
+inputL=`ls ${WKDIR}/analysis/"""+sample+"""/Stacks/processTags/*.fq | awk '{printf "-s "$1 " "}'`
 
 echo "nohup denovo_map.pl -m 6 -M 2 -n 2 -S -b 1 -T 6 -t -o ${WKDIR}/analysis/"""+sample+"""/Stacks/denovo" $inputL " >${WKDIR}/analysis/"""+sample+"""/Stacks/denovo/nohup.out" | bash
 
