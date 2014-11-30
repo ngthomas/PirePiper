@@ -115,28 +115,15 @@ cat *fastq* | fastqc /dev/stdin -o ../qc_report/
 ## Usage: Submit this script thru qsub: qsub run_trim.sh
 
 cd """+rawfq_path+"""
-raw_file=(*fastq*)
-half_val=$[${#raw_file[@]}/2]
 
-for ((i = 0; i < half_val; i++)); do
-	outf1=${raw_file[$i]}
-	if [[ ${raw_file[$i]} == *.gz ]]; then
-		outf1=`echo ${raw_file[$i]} | rev| cut -c 4- |rev`; fi
+for fastq_f in *fastq*; do
+	outfile=${fastq_f}
+	if [[ ${outfile} == *.gz ]]; then
+		outfile=`echo ${outfile} | rev| cut -c 4- |rev`; fi
 		
-	seqtk trimfq -e 5 ${raw_file[$i]} > """+trim_path+"""/$outf1; 
-	gzip """+trim_path+"""/$outf1;
-done &
-
-for ((j = half_val; j < ${#raw_file[@]}; j++)); do
-	outf2=${raw_file[$j]}
-	if [[ ${raw_file[$j]} == *.gz ]]; then
-		outf2=`echo ${raw_file[$j]} | rev| cut -c 4- |rev`; fi
-		
-	seqtk trimfq -e 5 ${raw_file[$j]} > """+trim_path+"""/$outf2; 
-	gzip """+trim_path+"""/$outf2;
-
-done &
-
+	seqtk trimfq -e 5 ${fastq_f} > """+trim_path+"""/$outfile; 
+	gzip """+trim_path+"""/$outfile;
+done 
 
 """
 		trim_FILE.write(trim_script)
