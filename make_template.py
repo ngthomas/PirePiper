@@ -87,8 +87,10 @@ def generate_scripts(config_param):
 		
 		write_qc(sample, path_pre, config_param)
 		write_trim(sample, path_pre, config_param)
-		write_trim(sample, path_pre, config_param)
-		write_trim(sample, path_pre, config_param)
+		write_demulti(sample, path_pre, config_param)
+		write_stack_core(sample, path_pre, config_param)
+		write_blat(sample, path_pre, config_param)
+		write_pyrad(sample, path_pre, config_param)
 		
 
 
