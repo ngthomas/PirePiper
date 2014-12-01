@@ -86,12 +86,12 @@ def generate_scripts(config_param):
 		print ("____________________________________________________________________")
 		print ("")
 		
-		write_qc(sample, path_pre, config_param)
-		write_trim(sample, path_pre, config_param)
-		write_demulti(sample, path_pre, config_param)
-		write_stack_core(sample, path_pre, config_param)
-		write_blat(sample, path_pre, config_param)
-		write_pyrad(sample, path_pre, config_param)
+		jtemplate.write_qc(sample, path_pre, config_param)
+		jtemplate.write_trim(sample, path_pre, config_param)
+		jtemplate.write_demulti(sample, path_pre, config_param)
+		jtemplate.write_stack_core(sample, path_pre, config_param)
+		jtemplate.write_blat(sample, path_pre, config_param)
+		jtemplate.write_pyrad(sample, path_pre, config_param)
 	
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='create a scaffold to run PIRE RAD-seq pipeline')
