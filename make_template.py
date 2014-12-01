@@ -84,10 +84,22 @@ def generate_scripts(config_param):
 		print ("")
 		print ("____________________________________________________________________")
 		print ("")
-	
-		qc_FILE = open (script_path+"/run_qc.sh", "w")
 		
-		qc_script = """#!/bin/bash
+		write_qc(sample, path_pre, config_param)
+		write_trim(sample, path_pre, config_param)
+		write_trim(sample, path_pre, config_param)
+		write_trim(sample, path_pre, config_param)
+		
+
+
+def write_qc (sample, path_pre, config_param):
+	script_path = path_pre + "/scripts/"+sample
+	rawfq_path = path_pre +"/data/"+sample+"/raw"
+	trim_path = path_pre+"/data/"+sample+"/trim"
+	barcode_path = path_pre +"/data/"+sample+"/barcode"
+		
+	qc_FILE = open (script_path+"/run_qc.sh", "w")
+	qc_script = """#!/bin/bash
 #$ -cwd
 #$ -V 
 #$ -N fastq_QC 
@@ -101,11 +113,16 @@ def generate_scripts(config_param):
 cd """+rawfq_path+"""
 cat *fastq* | fastqc /dev/stdin -o ../qc_report/
 """
-		qc_FILE.write(qc_script)
-		
-		trim_FILE = open (script_path+"/run_trim.sh", "w")
-		
-		trim_script = """#!/bin/bash
+	qc_FILE.write(qc_script)
+
+def write_trim (sample, path_pre, config_param):
+	script_path = path_pre + "/scripts/"+sample
+	rawfq_path = path_pre +"/data/"+sample+"/raw"
+	trim_path = path_pre+"/data/"+sample+"/trim"
+	barcode_path = path_pre +"/data/"+sample+"/barcode"
+	
+	trim_FILE = open (script_path+"/run_trim.sh", "w")
+	trim_script = """#!/bin/bash
 #$ -cwd
 #$ -V 
 #$ -N trim_reads 
@@ -127,10 +144,16 @@ for fastq_f in *fastq*; do
 done 
 
 """
-		trim_FILE.write(trim_script)
+	trim_FILE.write(trim_script)
 
-		stack_demulti_FILE = open (script_path+"/Stacks/run_processTags.sh", "w")
-		stack_demulti = """#!/bin/bash
+def write_demulti (sample, path_pre, config_param):
+	script_path = path_pre + "/scripts/"+sample
+	rawfq_path = path_pre +"/data/"+sample+"/raw"
+	trim_path = path_pre+"/data/"+sample+"/trim"
+	barcode_path = path_pre +"/data/"+sample+"/barcode"
+	
+	stack_demulti_FILE = open (script_path+"/Stacks/run_processTags.sh", "w")
+	stack_demulti = """#!/bin/bash
 #$ -cwd
 #$ -V 
 #$ -N stack_process 
@@ -166,10 +189,16 @@ process_radtags -p """+trim_path+""" -o ${WKDIR}/analysis/"""+sample+"""/Stacks/
 # relabel fq barcode file to something more meaningful i.e. the sample name
 awk -v basePath=${WKDIR}/analysis/"""+sample+"""/Stacks/processTags '{print "mv "basePath"/sample_"$1".fq "basePath"/sample_"$2".fq"}' ${WKDIR}/data/"""+sample+"""/barcode |bash """
 
-		stack_demulti_FILE.write(stack_demulti)
+	stack_demulti_FILE.write(stack_demulti)
 	
-		stack_catalog_FILE = open (script_path+"/Stacks/run_stackCatalog.sh", "w")
-		stack_catalog = """#!/bin/bash
+def write_stack_core (sample, path_pre, config_param):
+	script_path = path_pre + "/scripts/"+sample
+	rawfq_path = path_pre +"/data/"+sample+"/raw"
+	trim_path = path_pre+"/data/"+sample+"/trim"
+	barcode_path = path_pre +"/data/"+sample+"/barcode"
+	
+	stack_catalog_FILE = open (script_path+"/Stacks/run_stackCatalog.sh", "w")
+	stack_catalog = """#!/bin/bash
 #$ -cwd
 #$ -V 
 #$ -N stackCatalog_process 
@@ -201,10 +230,16 @@ inputL=`ls ${WKDIR}/analysis/"""+sample+"""/Stacks/processTags/*.fq | awk '{prin
 echo "nohup denovo_map.pl -m 6 -M 2 -n 2 -S -b 1 -T 6 -t -o ${WKDIR}/analysis/"""+sample+"""/Stacks/denovo" $inputL " >${WKDIR}/analysis/"""+sample+"""/Stacks/denovo/nohup.out" | bash
 
 """	
-		stack_catalog_FILE.write(stack_catalog)
-		
-		pyrad_FILE = open (script_path+"/pyRAD/run_pyRAD.sh", "w")
-		pyrad_script = """#!/bin/bash
+	stack_catalog_FILE.write(stack_catalog)
+
+def write_pyrad (sample, path_pre, config_param):
+	script_path = path_pre + "/scripts/"+sample
+	rawfq_path = path_pre +"/data/"+sample+"/raw"
+	trim_path = path_pre+"/data/"+sample+"/trim"
+	barcode_path = path_pre +"/data/"+sample+"/barcode"
+	
+	pyrad_FILE = open (script_path+"/pyRAD/run_pyRAD.sh", "w")
+	pyrad_script = """#!/bin/bash
 #$ -cwd
 #$ -V 
 #$ -N pyrad_process 
@@ -221,10 +256,16 @@ WKDIR=="""+path_pre+"""
 module load python/2.7
 pyRAD -p $WKDIR/scripts/"""+sample+"""/pyRAD/params.txt -s 234567
 """
-		pyrad_FILE.write(pyrad_script)
+	pyrad_FILE.write(pyrad_script)
+
+def write_blat (sample, path_pre, config_param):
+	script_path = path_pre + "/scripts/"+sample
+	rawfq_path = path_pre +"/data/"+sample+"/raw"
+	trim_path = path_pre+"/data/"+sample+"/trim"
+	barcode_path = path_pre +"/data/"+sample+"/barcode"
 	
-		blat_FILE = open (script_path+"/blat/run_blat.sh", "w")
-		blat_script = """#!/bin/bash
+	blat_FILE = open (script_path+"/blat/run_blat.sh", "w")
+	blat_script = """#!/bin/bash
 #$ -cwd
 #$ -V 
 #$ -N align_RNA_RAD
@@ -244,7 +285,7 @@ cd ${WKDIR}/data/"""+sample+"""/rna
 for i in *.fa; do
 /u/local/apps/blat/34/bin/blat -q=rna -out=pslx ${WKDIR}/analysis/"""+sample+"""/blat/RAD_consen.fa $i ${WKDIR}/analysis/"""+sample+"""/blat/align_${i}.out; done
 """
-		blat_FILE.write(blat_script)
+	blat_FILE.write(blat_script)
 	
 	
 
