@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os, sys, re, argparse, string
+import jtemplate
 
 '''
 This module reads the user's input config file and extracts information from it
