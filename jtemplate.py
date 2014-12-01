@@ -180,10 +180,10 @@ for i in *.fa; do
 """
 	blat_FILE.write(blat_script)
 	
-def write_gen_tbl (sample, path_pre, config_param):
+def write_align_summary (sample, path_pre, config_param):
 	script_path = path_pre + "/scripts/"+sample
 	
-	align_result_FILE = open (script_path+"/blat/gen_tbl.sh", "w")
+	align_summary_FILE = open (script_path+"/blat/gen_tbl.sh", "w")
 	script = """#!/bin/bash
 	
 ## path: """+script_path+"""/blat
@@ -232,5 +232,6 @@ done
 echo "";
 done > ${WKDIR}/analysis/"""+sample+"""/blat/RAD_RNA_stat.md
 
-	
 """
+
+	align_summary_FILE.write(script)
