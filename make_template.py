@@ -97,8 +97,6 @@ def generate_scripts(config_param):
 def write_qc (sample, path_pre, config_param):
 	script_path = path_pre + "/scripts/"+sample
 	rawfq_path = path_pre +"/data/"+sample+"/raw"
-	trim_path = path_pre+"/data/"+sample+"/trim"
-	barcode_path = path_pre +"/data/"+sample+"/barcode"
 		
 	qc_FILE = open (script_path+"/run_qc.sh", "w")
 	qc_script = """#!/bin/bash
@@ -150,7 +148,6 @@ done
 
 def write_demulti (sample, path_pre, config_param):
 	script_path = path_pre + "/scripts/"+sample
-	rawfq_path = path_pre +"/data/"+sample+"/raw"
 	trim_path = path_pre+"/data/"+sample+"/trim"
 	barcode_path = path_pre +"/data/"+sample+"/barcode"
 	
@@ -172,7 +169,7 @@ mkdir -p ${WKDIR}/analysis/"""+sample+"""/Stacks/processTags
 
 # making the stacks' barcode
 
-awk '{print $1}' ${WKDIR}/data/"""+sample+"""/barcode > ${WKDIR}/data/"""+sample+"""/RAD_barcode
+awk '{print $1}' """+barcode_path+""" > ${WKDIR}/data/"""+sample+"""/RAD_barcode
 
 
 # parameters for process_radtags
@@ -195,9 +192,6 @@ awk -v basePath=${WKDIR}/analysis/"""+sample+"""/Stacks/processTags '{print "mv 
 	
 def write_stack_core (sample, path_pre, config_param):
 	script_path = path_pre + "/scripts/"+sample
-	rawfq_path = path_pre +"/data/"+sample+"/raw"
-	trim_path = path_pre+"/data/"+sample+"/trim"
-	barcode_path = path_pre +"/data/"+sample+"/barcode"
 	
 	stack_catalog_FILE = open (script_path+"/Stacks/run_stackCatalog.sh", "w")
 	stack_catalog = """#!/bin/bash
@@ -236,9 +230,6 @@ echo "nohup denovo_map.pl -m 6 -M 2 -n 2 -S -b 1 -T 6 -t -o ${WKDIR}/analysis/""
 
 def write_pyrad (sample, path_pre, config_param):
 	script_path = path_pre + "/scripts/"+sample
-	rawfq_path = path_pre +"/data/"+sample+"/raw"
-	trim_path = path_pre+"/data/"+sample+"/trim"
-	barcode_path = path_pre +"/data/"+sample+"/barcode"
 	
 	pyrad_FILE = open (script_path+"/pyRAD/run_pyRAD.sh", "w")
 	pyrad_script = """#!/bin/bash
@@ -262,9 +253,6 @@ pyRAD -p $WKDIR/scripts/"""+sample+"""/pyRAD/params.txt -s 234567
 
 def write_blat (sample, path_pre, config_param):
 	script_path = path_pre + "/scripts/"+sample
-	rawfq_path = path_pre +"/data/"+sample+"/raw"
-	trim_path = path_pre+"/data/"+sample+"/trim"
-	barcode_path = path_pre +"/data/"+sample+"/barcode"
 	
 	blat_FILE = open (script_path+"/blat/run_blat.sh", "w")
 	blat_script = """#!/bin/bash
@@ -279,8 +267,7 @@ def write_blat (sample, path_pre, config_param):
 
 WKDIR="""+path_pre+"""
 
-awk '{ split($8,con,","); 
-for (i=1; i <= length(con); i++) {split(con[i], id, "_"); cons[id[1]]++} 
+awk '{ split($8,con,","); for (i=1; i <= length(con); i++) {split(con[i], id, "_"); cons[id[1]]++} 
 if (length(cons)>80) {a+=1; print ">" a "_" $3 "_" length(cons) "\\n" $9} delete cons}' ${WKDIR}/analysis/"""+sample+"""/Stacks/denovo/batch_1.catalog.tags.tsv > ${WKDIR}/analysis/"""+sample+"""/blat/RAD_consen.fa
 
 cd ${WKDIR}/data/"""+sample+"""/rna
