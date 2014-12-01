@@ -179,3 +179,58 @@ for i in *.fa; do
 /u/local/apps/blat/34/bin/blat -q=rna -out=pslx ${WKDIR}/analysis/"""+sample+"""/blat/RAD_consen.fa $i ${WKDIR}/analysis/"""+sample+"""/blat/align_${i}.out; done
 """
 	blat_FILE.write(blat_script)
+	
+def write_gen_tbl (sample, path_pre, config_param):
+	script_path = path_pre + "/scripts/"+sample
+	
+	align_result_FILE = open (script_path+"/blat/gen_tbl.sh", "w")
+	script = """#!/bin/bash
+	
+## path: """+script_path+"""/blat
+###Usage: Submit this script thru qsub: bash gen_tbl.sh
+
+WKDIR="""+path_pre+"""
+OUTDIR=${WKDIR}/analysis/"""+sample+"""/blat/tbl
+
+mkdir -p ${OUTDIR}
+
+cd ${WKDIR}/data/"""+sample+"""/rna
+# grab read numbers
+for i in *.fa; 
+do numline=`wc -l $i|awk '{print $1/2}'`
+echo $i $numline;
+done > ${OUTDIR}/num_reads.data 
+
+# grab number of reads aligned once and more than once
+cd ${WKDIR}/analysis/"""+sample+"""/blat
+for i in *.out; 
+do numline=`awk ' {NR>5 && d[$10]++} 
+    END{ 
+    for(i in d) { 
+        if(d[i]==1){ct_once++}
+        else{ct_more++}}
+    print ct_once "\\t" ct_more}' $i`;
+    fileN=`echo $i | sed 's/align_//;s/.out//'`
+echo $fileN $numline;
+done > ${OUTDIR}/num_align.data 
+
+cd ${OUTDIR}
+join -1 1 -2 1 ${OUTDIR}/num_reads.data ${OUTDIR}/num_align.data |awk 'BEGIN{print "RNA File | # of reads | # of reads aligned once | # of reads aligned more than once"; print "---|:---:|:---:|:---:";} {OFS=" | "; CONVFMT="%0.3f"; print $1,$2, $3 " ( " $3*100/$2 " %)", $4 " (" $4*100/$2" % )" }'
+> ${WKDIR}/analysis/"""+sample+"""/blat/alignment_report.md
+
+cat ${WKDIR}/analysis/"""+sample+"""/blat/*.out > ${OUTDIR}/align.out.concat
+
+for i in 30 50 70 90; do
+awk '{if($5==0 && $2 < 3 && $1 > '$i'){if(e[$14"_"$16"_"$17]++==0) d[$14]++; }}
+END{for (k in d) {print k"\\t"d[k] }}' ${OUTDIR}/align.out.concat > ${OUTDIR}/align_concat_${i}.tbl; done 
+
+for i in 30 50 70 90; do
+echo -n ">"$i" bp matches ";
+for d in 1 5 10 50 100; do
+awk '$2>'$d'' ${OUTDIR}/align_concat_${i}.tbl |wc -l |awk '{printf " | "$1 " (" "%3.1f" "%)",$1*100/38070}'; 
+done
+echo "";
+done > ${WKDIR}/analysis/"""+sample+"""/blat/RAD_RNA_stat.md
+
+	
+"""
