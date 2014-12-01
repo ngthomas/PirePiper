@@ -221,6 +221,29 @@ pyRAD -p $WKDIR/scripts/"""+sample+"""/pyRAD/params.txt -s 234567
 """
 		pyrad_FILE.write(pyrad_script)
 	
+		blat_FILE = open (script_path+"/blat/run_blat.sh", "w")
+		blat_script = """#!/bin/bash
+#$ -cwd
+#$ -V 
+#$ -N align_RNA_RAD
+#$ -l highp,h_data=4G,time=46:00:00 
+#$ -m bea
+
+## path: """+script_path+"""/blat
+###Usage: Submit this script thru qsub: qsub run_blat.sh
+
+WKDIR="""+path_pre+"""
+
+awk '{ split($8,con,","); 
+for (i=1; i <= length(con); i++) {split(con[i], id, "_"); cons[id[1]]++} 
+if (length(cons)>80) {a+=1; print ">" a "_" $3 "_" length(cons) "\n" $9} delete cons}'
+${WKDIR}/analysis/"""+sample+"""/Stacks/denovo/batch_1.catalog.tags.tsv > ${WKDIR}/analysis/"""+sample+"""/blat/RAD_consen.fa
+
+cd ${WKDIR}/data/"""+sample+"""/rna
+for i in *.fa; do
+/u/local/apps/blat/34/bin/blat -q=rna -out=pslx ${WKDIR}/analysis/"""+sample+"""/blat/RAD_consen.fa $i ${WKDIR}/analysis/"""+sample+"""/blat/align_${i}.out; done
+"""
+		pyrad_FILE.write(pyrad_script)
 	
 	
 
