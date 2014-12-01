@@ -238,7 +238,7 @@ WKDIR="""+path_pre+"""
 
 awk '{ split($8,con,","); 
 for (i=1; i <= length(con); i++) {split(con[i], id, "_"); cons[id[1]]++} 
-if (length(cons)>80) {a+=1; print ">" a "_" $3 "_" length(cons) "\n" $9} delete cons}'
+if (length(cons)>80) {a+=1; print ">" a "_" $3 "_" length(cons) "/\n" $9} delete cons}'
 ${WKDIR}/analysis/"""+sample+"""/Stacks/denovo/batch_1.catalog.tags.tsv > ${WKDIR}/analysis/"""+sample+"""/blat/RAD_consen.fa
 
 cd ${WKDIR}/data/"""+sample+"""/rna
