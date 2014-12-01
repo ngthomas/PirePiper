@@ -47,9 +47,10 @@ def make_folders(config_param):
 	for sample in config_param['sample']:
 		check_or_make_dir(path_pre+"/data/"+sample+"/raw") 
 		check_or_make_dir(path_pre+"/data/"+sample+"/trim")
+		check_or_make_dir(path_pre+"/data/"+sample+"/rna")
 		check_or_make_dir(path_pre+"/data/"+sample+"/qc_report") 
 		
-		for i in ['pyRAD', 'Stacks', 'R']:
+		for i in ['pyRAD', 'Stacks', 'R', 'blat']:
 			check_or_make_dir(path_pre+"/analysis/"+sample+"/"+i)
 			check_or_make_dir(path_pre+"/scripts/"+sample+"/"+i)
 
@@ -77,6 +78,7 @@ def generate_scripts(config_param):
 		print ("")
 		print ("6a. To optimize stacks parameter: qsub ??")
 		print ("6b. To generate loci quality caller: qsub ??")
+		print ("6c. To align RNA to RAD: qsub "+script_path+"/blat/run_blat.sh")
 		print ("")
 		print ("7. To run pyRAD: qsub " +script_path+"/pyRAD/run_pyRAD.sh")
 		print ("")
@@ -243,7 +245,7 @@ cd ${WKDIR}/data/"""+sample+"""/rna
 for i in *.fa; do
 /u/local/apps/blat/34/bin/blat -q=rna -out=pslx ${WKDIR}/analysis/"""+sample+"""/blat/RAD_consen.fa $i ${WKDIR}/analysis/"""+sample+"""/blat/align_${i}.out; done
 """
-		pyrad_FILE.write(pyrad_script)
+		blat_FILE.write(blat_script)
 	
 	
 
