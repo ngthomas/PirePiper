@@ -162,7 +162,7 @@ awk '{print $1}' ${WKDIR}/data/"""+sample+"""/barcode > ${WKDIR}/data/"""+sample
 process_radtags -p """+trim_path+""" -o ${WKDIR}/analysis/"""+sample+"""/Stacks/processTags -b ${WKDIR}/data/"""+sample+"""/RAD_barcode -e 'sbfI' -r -c -q 
 
 # relabel fq barcode file to something more meaningful i.e. the sample name
-awk -v basePath=${WKDIR}/analysis/"""+sample+"""/Stacks/processTags 'FS="," {if(NR>1) {print "mv "basePath"/sample_"$2".fq "basePath"/sample_"$1".fq"}}' ${WKDIR}/data/"""+sample+"""/barcode |bash """
+awk -v basePath=${WKDIR}/analysis/"""+sample+"""/Stacks/processTags '{print "mv "basePath"/sample_"$1".fq "basePath"/sample_"$2".fq"}' ${WKDIR}/data/"""+sample+"""/barcode |bash """
 
 		stack_demulti_FILE.write(stack_demulti)
 	
